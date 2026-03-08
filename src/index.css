@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --accent: #00ffcc;
+  --accent-glow: rgba(0, 255, 204, 0.15);
+  --accent-border: rgba(0, 255, 204, 0.2);
+  --bg-primary: #060a0e;
+  --bg-panel: #0c1218;
+  --grid: rgba(0, 255, 204, 0.035);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: #d8ecec;
+  font-family: 'Rajdhani', sans-serif;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-attachment: fixed;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--accent-border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,255,204,0.4); }
+
+/* Phosphor glow text effect */
+.glow {
+  text-shadow: 0 0 12px rgba(0, 255, 204, 0.5), 0 0 24px rgba(0, 255, 204, 0.2);
+}
+
+.glow-sm {
+  text-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+}
+
+/* Panel box glow */
+.panel-glow {
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 204, 0.12),
+    0 4px 24px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(0, 255, 204, 0.06);
+}
+
+.panel-glow:hover {
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 204, 0.2),
+    0 4px 24px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(0, 255, 204, 0.08);
+}
+
+/* Input field */
+.field {
+  background: #0a1016;
+  border: 1px solid rgba(0,255,204,0.15);
+  color: #00ffcc;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 3px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -moz-appearance: textfield;
+}
+
+.field::-webkit-outer-spin-button,
+.field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.field:focus {
+  border-color: rgba(0,255,204,0.6);
+  box-shadow: 0 0 0 2px rgba(0,255,204,0.08), 0 0 10px rgba(0,255,204,0.1);
+}
+
+.field::placeholder {
+  color: rgba(0,255,204,0.2);
+}
+
+.field-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300ffcc66'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 2rem;
+  cursor: pointer;
+}
+
+/* Tab animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tab-content {
+  animation: fadeInUp 0.2s ease-out;
+}
+
+/* Value display pulse on update */
+@keyframes valuePulse {
+  0%   { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+.value-pulse {
+  animation: valuePulse 0.3s ease-out;
+}
+
+/* Scanline overlay for results panel */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.12) 2px,
+    rgba(0,0,0,0.12) 4px
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Corner bracket decoration */
+.corner-bracket {
+  position: relative;
+}
+.corner-bracket::before,
+.corner-bracket::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(0,255,204,0.4);
+  border-style: solid;
+}
+.corner-bracket::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+.corner-bracket::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+/* Warning banner */
+@keyframes warnPulse {
+  0%, 100% { border-color: rgba(255,170,0,0.4); }
+  50%       { border-color: rgba(255,170,0,0.8); }
+}
+.warn-pulse {
+  animation: warnPulse 2s ease-in-out infinite;
+}

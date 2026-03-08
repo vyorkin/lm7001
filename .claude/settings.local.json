@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "WebSearch",
+      "WebFetch(domain:www.am1.us)",
+      "WebFetch(domain:www.changpuak.ch)",
+      "WebFetch(domain:people.engr.tamu.edu)",
+      "WebFetch(domain:www.ti.com)",
+      "WebFetch(domain:www.analog.com)",
+      "WebFetch(domain:pl-1.org)",
+      "WebFetch(domain:www.alldatasheet.com)",
+      "WebFetch(domain:pallen.ece.gatech.edu)",
+      "WebFetch(domain:www.chipdocs.com)",
+      "WebFetch(domain:theretroweb.com)",
+      "WebFetch(domain:www.digchip.com)",
+      "Bash(npm create:*)",
+      "Bash(npx create-vite@latest:*)",
+      "Bash(printf y\\\\n:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(node:*)"
+    ]
+  }
+}
