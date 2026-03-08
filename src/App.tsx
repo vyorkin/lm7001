@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import LoopFilterCalculator from './components/LoopFilterCalculator'
 import OutputLPFCalculator from './components/OutputLPFCalculator'
+import ActiveFilterCalculator from './components/ActiveFilterCalculator'
 
-type Tab = 'loop' | 'lpf'
+type Tab = 'loop' | 'lpf' | 'active'
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('loop')
@@ -48,6 +49,10 @@ export default function App() {
             <span className="mr-2 opacity-50">②</span>
             Выходной ФНЧ
           </TabButton>
+          <TabButton active={tab === 'active'} onClick={() => setTab('active')}>
+            <span className="mr-2 opacity-50">③</span>
+            Активный фильтр
+          </TabButton>
 
           {/* flex spacer */}
           <div className="flex-1 border-b border-accent-border/30" />
@@ -64,6 +69,11 @@ export default function App() {
         {tab === 'lpf' && (
           <div className="tab-content">
             <OutputLPFCalculator />
+          </div>
+        )}
+        {tab === 'active' && (
+          <div className="tab-content">
+            <ActiveFilterCalculator />
           </div>
         )}
       </main>
