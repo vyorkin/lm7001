@@ -29,7 +29,7 @@ export default function ResultsPanel({ title, rows, warning, note }: Props) {
         <span className="font-mono text-xs text-accent tracking-[0.2em] uppercase">
           {title}
         </span>
-        <span className="font-mono text-xs text-text-dim">COMPUTED</span>
+        <span className="font-mono text-xs text-text-dim">РАСЧЁТ</span>
       </div>
 
       {/* Warning banner */}

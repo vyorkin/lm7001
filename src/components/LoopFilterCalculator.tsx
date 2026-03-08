@@ -108,14 +108,14 @@ export default function LoopFilterCalculator() {
   const rows: ResultRow[] = result.ok
     ? [
         {
-          label: 'VCO frequency',
+          label: 'Частота VCO',
           symbol: 'fvco',
           value: result.value.fVCO,
           unit: 'Hz',
           highlight: true,
         },
         {
-          label: 'Division ratio N',
+          label: 'Коэффициент деления N',
           symbol: 'N',
           value: result.value.N,
           unit: '',
@@ -124,7 +124,7 @@ export default function LoopFilterCalculator() {
           highlight: true,
         },
         {
-          label: 'Geometric factor',
+          label: 'Геометрический коэффициент',
           symbol: 'm',
           value: result.value.m,
           unit: '',
@@ -132,7 +132,7 @@ export default function LoopFilterCalculator() {
           rawFormat: (v) => v.toFixed(4),
         },
         {
-          label: 'Series resistor',
+          label: 'Последовательный резистор',
           symbol: 'R',
           value: result.value.R,
           unit: 'Ω',
@@ -140,7 +140,7 @@ export default function LoopFilterCalculator() {
           highlight: true,
         },
         {
-          label: 'Dominant cap C₁',
+          label: 'Основной конденсатор C₁',
           symbol: 'C1',
           value: result.value.C1,
           unit: 'F',
@@ -148,7 +148,7 @@ export default function LoopFilterCalculator() {
           highlight: true,
         },
         {
-          label: 'Feed-forward cap C₂',
+          label: 'Опережающий конденсатор C₂',
           symbol: 'C2',
           value: result.value.C2,
           unit: 'F',
@@ -156,19 +156,19 @@ export default function LoopFilterCalculator() {
           highlight: true,
         },
         {
-          label: 'Zero frequency',
+          label: 'Частота нуля',
           symbol: 'fz',
           value: result.value.fz,
           unit: 'Hz',
         },
         {
-          label: 'Pole frequency',
+          label: 'Частота полюса',
           symbol: 'fp',
           value: result.value.fp,
           unit: 'Hz',
         },
         {
-          label: 'Phase margin (actual)',
+          label: 'Запас по фазе (факт)',
           symbol: 'φm',
           value: result.value.phiM_actual,
           unit: '°',
@@ -176,7 +176,7 @@ export default function LoopFilterCalculator() {
           rawFormat: (v) => `${v.toFixed(2)}°`,
         },
         {
-          label: 'Loop bandwidth (actual)',
+          label: 'Полоса петли (факт)',
           symbol: 'fc',
           value: result.value.fc_actual,
           unit: 'Hz',
@@ -189,8 +189,8 @@ export default function LoopFilterCalculator() {
       {/* ── LEFT: Inputs ── */}
       <div className="flex flex-col gap-4">
         {/* VCO Configuration */}
-        <Section title="VCO Configuration" badge="RF">
-          <Field id={`${id}-frf`} label="RF frequency" unit="MHz" hint="87.5–108 MHz">
+        <Section title="Конфигурация VCO" badge="RF">
+          <Field id={`${id}-frf`} label="Частота RF" unit="MHz" hint="87.5–108 MHz">
             <input
               id={`${id}-frf`}
               className="field"
@@ -202,7 +202,7 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setFRF(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          <Field id={`${id}-fif`} label="IF frequency" unit="MHz" hint="std: 10.7">
+          <Field id={`${id}-fif`} label="Частота ПЧ" unit="MHz" hint="стд: 10.7">
             <input
               id={`${id}-fif`}
               className="field"
@@ -213,7 +213,7 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setFIF(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          <Field id={`${id}-fref`} label="Reference freq" unit="kHz" hint="chip register">
+          <Field id={`${id}-fref`} label="Опорная частота" unit="kHz" hint="регистр чипа">
             <select
               id={`${id}-fref`}
               className="field field-select"
@@ -230,8 +230,8 @@ export default function LoopFilterCalculator() {
         </Section>
 
         {/* PLL Parameters */}
-        <Section title="PLL Parameters" badge="CHIP">
-          <Field id={`${id}-icp`} label="Charge pump Icp" unit="mA" hint="measure on PD1/PD2">
+        <Section title="Параметры PLL" badge="CHIP">
+          <Field id={`${id}-icp`} label="Ток зарядного насоса Icp" unit="mA" hint="измерить на PD1/PD2">
             <input
               id={`${id}-icp`}
               className="field"
@@ -243,7 +243,7 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setIcp(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          <Field id={`${id}-kvco`} label="VCO gain Kvco" unit="MHz/V" hint="measured">
+          <Field id={`${id}-kvco`} label="Крутизна VCO Kvco" unit="MHz/V" hint="измерено">
             <input
               id={`${id}-kvco`}
               className="field"
@@ -257,8 +257,8 @@ export default function LoopFilterCalculator() {
         </Section>
 
         {/* Loop Design */}
-        <Section title="Loop Design" badge="DESIGN">
-          <Field id={`${id}-fc`} label="Loop bandwidth fc" unit="kHz" hint="suggest: fref/10">
+        <Section title="Параметры петли" badge="DESIGN">
+          <Field id={`${id}-fc`} label="Полоса петли fc" unit="kHz" hint="рек.: fref/10">
             <input
               id={`${id}-fc`}
               className="field"
@@ -269,7 +269,7 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setFc(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          <Field id={`${id}-phim`} label="Phase margin φm" unit="°" hint="30–70°, typ 45°">
+          <Field id={`${id}-phim`} label="Запас по фазе φm" unit="°" hint="30–70°, тип 45°">
             <input
               id={`${id}-phim`}
               className="field"
@@ -316,7 +316,7 @@ export default function LoopFilterCalculator() {
           <>
             {/* Topology diagram */}
             <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
-              <div className="font-mono text-xs text-text-dim mb-2 tracking-wider">TOPOLOGY</div>
+              <div className="font-mono text-xs text-text-dim mb-2 tracking-wider">ТОПОЛОГИЯ</div>
               <pre className="font-mono text-xs text-accent/50 leading-tight select-none">
 {`PD1/PD2 ──┬──── R ────┬──── Vtune(VCO)
            │           │
@@ -328,11 +328,11 @@ export default function LoopFilterCalculator() {
 
             {/* Results */}
             <ResultsPanel
-              title="Computed Component Values"
+              title="Рассчитанные значения компонентов"
               rows={rows}
               warning={
                 result.value.stabilityWarning
-                  ? `fc = ${(result.value.fc_actual / 1000).toFixed(2)} kHz > fref/10 = ${(fref / 10000).toFixed(1)} kHz — reference spur injection risk`
+                  ? `fc = ${(result.value.fc_actual / 1000).toFixed(2)} kHz > fref/10 = ${(fref / 10000).toFixed(1)} kHz — риск паразитных спектральных составляющих`
                   : undefined
               }
             />
@@ -342,7 +342,7 @@ export default function LoopFilterCalculator() {
               <FrequencyPlot
                 data={plotData}
                 refs={plotRefs}
-                title="Open-Loop Bode Plot  |G(jω)|"
+                title="График Боде разомкнутой петли  |G(jω)|"
                 showPhase={true}
               />
             )}

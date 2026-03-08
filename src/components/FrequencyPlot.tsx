@@ -70,12 +70,12 @@ export default function FrequencyPlot({
         <div className="flex items-center gap-4 font-mono text-xs text-text-dim">
           <span className="flex items-center gap-1.5">
             <span className="w-4 h-px bg-accent inline-block" />
-            Gain [dB]
+            Усиление [dB]
           </span>
           {showPhase && (
             <span className="flex items-center gap-1.5">
               <span className="w-4 h-px bg-blue inline-block" />
-              Phase [°]
+              Фаза [°]
             </span>
           )}
         </div>
@@ -101,7 +101,7 @@ export default function FrequencyPlot({
               axisLine={{ stroke: 'rgba(0,255,204,0.15)' }}
               tickLine={{ stroke: TICK_COLOR }}
               label={{
-                value: 'Frequency [Hz]',
+                value: 'Частота [Hz]',
                 position: 'insideBottom',
                 offset: -2,
                 fill: TICK_COLOR,
@@ -142,8 +142,8 @@ export default function FrequencyPlot({
                 color: '#00ffcc',
               }}
               formatter={(value: number, name: string) => {
-                if (name === 'mag') return [`${value.toFixed(1)} dB`, 'Gain']
-                if (name === 'phase') return [`${value.toFixed(1)}°`, 'Phase']
+                if (name === 'mag') return [`${value.toFixed(1)} dB`, 'Усиление']
+                if (name === 'phase') return [`${value.toFixed(1)}°`, 'Фаза']
                 return [value, name]
               }}
               labelFormatter={(logF: number) =>

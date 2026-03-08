@@ -21,7 +21,7 @@ export default function App() {
               LM7001
             </span>
             <span className="font-display text-sm font-600 text-text-secondary uppercase tracking-[0.25em]">
-              Filter Calculator
+              Калькулятор фильтра
             </span>
           </div>
 
@@ -42,11 +42,11 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 flex gap-0 border-t border-accent-border/40 mt-0">
           <TabButton active={tab === 'loop'} onClick={() => setTab('loop')}>
             <span className="mr-2 opacity-50">①</span>
-            PLL Loop Filter
+            Петлевой фильтр PLL
           </TabButton>
           <TabButton active={tab === 'lpf'} onClick={() => setTab('lpf')}>
             <span className="mr-2 opacity-50">②</span>
-            Output LPF
+            Выходной ФНЧ
           </TabButton>
 
           {/* flex spacer */}
@@ -71,7 +71,7 @@ export default function App() {
       {/* ── Footer ── */}
       <footer className="border-t border-accent-border/20 py-3 px-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center font-mono text-xs text-text-dim">
-          <span>LM7001J/JM — Sanyo Semiconductor · Datasheet EN5262 (Feb 1997)</span>
+          <span>LM7001J/JM — Sanyo Semiconductor · Документация EN5262 (фев 1997)</span>
           <span>VCO: 87–120 MHz · fref: 1–100 kHz</span>
         </div>
       </footer>
