@@ -4,6 +4,7 @@ import { hzToRad, mAtoA, khzToHz, mhzToHz, formatSI } from "../lib/units";
 import ResultsPanel, { type ResultRow } from "./ResultsPanel";
 import FrequencyPlot from "./FrequencyPlot";
 import PassiveFilterDiagram from "./PassiveFilterDiagram";
+import { useLocale } from "../i18n";
 import type { LoopFilterInput, RefFrequency } from "../types";
 
 const REF_FREQS: RefFrequency[] = [
@@ -21,6 +22,7 @@ const DEFAULT_INPUT = {
 };
 
 export default function LoopFilterCalculator() {
+  const t = useLocale();
   const [fRF_mhz, setFRF] = useState(DEFAULT_INPUT.fRF_mhz);
   const [fIF_mhz, setFIF] = useState(DEFAULT_INPUT.fIF_mhz);
   const [fref, setFref] = useState<RefFrequency>(DEFAULT_INPUT.fref);
@@ -71,19 +73,15 @@ export default function LoopFilterCalculator() {
       const freq = Math.pow(10, logF);
       const w = 2 * Math.PI * freq;
 
-      // Loop filter F(s)
-      // F(jw) = (1 + jw*R*C1) / [ jw*(C1+C2)*(1 + jw*R*C1*C2/(C1+C2)) ]
       const Ctot = C1 + C2;
-      const tau1 = R * C1; // zero: ωz = 1/tau1
-      const tau2 = (R * C1 * C2) / Ctot; // pole contribution
+      const tau1 = R * C1;
+      const tau2 = (R * C1 * C2) / Ctot;
 
-      // Numerator: 1 + j*w*tau1
       const numRe = 1;
       const numIm = w * tau1;
       const numMag = Math.sqrt(numRe * numRe + numIm * numIm);
       const numPhase = Math.atan2(numIm, numRe);
 
-      // Denominator: jw*Ctot*(1 + j*w*tau2) — magnitude and phase
       const den1Mag = w * Ctot;
       const den1Phase = Math.PI / 2;
       const den2Re = 1;
@@ -94,7 +92,6 @@ export default function LoopFilterCalculator() {
       const F_mag = numMag / (den1Mag * den2Mag);
       const F_phase = numPhase - den1Phase - den2Phase;
 
-      // Open-loop G(jw) = (Icp/(2π)) * (Kvco_rad/N) * F(jw) / (j*w)
       const gain_factor = (Icp / (2 * Math.PI)) * (Kvco_rad / N);
       const G_mag = (gain_factor * F_mag) / w;
       const G_phase = F_phase - Math.PI / 2;
@@ -102,7 +99,6 @@ export default function LoopFilterCalculator() {
       const mag_db = 20 * Math.log10(G_mag);
       const phase_deg = (G_phase * 180) / Math.PI;
 
-      // Clamp to reasonable display range
       if (mag_db < -80 || mag_db > 80) continue;
 
       points.push({ logF, freq, mag: mag_db, phase: phase_deg });
@@ -133,80 +129,16 @@ export default function LoopFilterCalculator() {
 
   const rows: ResultRow[] = result.ok
     ? [
-        {
-          label: "Частота VCO",
-          symbol: "fvco",
-          value: result.value.fVCO,
-          unit: "Hz",
-          highlight: true,
-        },
-        {
-          label: "Коэффициент деления N",
-          symbol: "N",
-          value: result.value.N,
-          unit: "",
-          raw: true,
-          rawFormat: (v) => v.toFixed(0),
-          highlight: true,
-        },
-        {
-          label: "Геометрический коэффициент",
-          symbol: "m",
-          value: result.value.m,
-          unit: "",
-          raw: true,
-          rawFormat: (v) => v.toFixed(4),
-        },
-        {
-          label: "Последовательный резистор",
-          symbol: "R",
-          value: result.value.R,
-          unit: "Ω",
-          digits: 2,
-          highlight: true,
-        },
-        {
-          label: "Основной конденсатор C₁",
-          symbol: "C1",
-          value: result.value.C1,
-          unit: "F",
-          digits: 2,
-          highlight: true,
-        },
-        {
-          label: "Опережающий конденсатор C₂",
-          symbol: "C2",
-          value: result.value.C2,
-          unit: "F",
-          digits: 2,
-          highlight: true,
-        },
-        {
-          label: "Частота нуля",
-          symbol: "fz",
-          value: result.value.fz,
-          unit: "Hz",
-        },
-        {
-          label: "Частота полюса",
-          symbol: "fp",
-          value: result.value.fp,
-          unit: "Hz",
-        },
-        {
-          label: "Запас по фазе (факт)",
-          symbol: "φm",
-          value: result.value.phiM_actual,
-          unit: "°",
-          raw: true,
-          rawFormat: (v) => `${v.toFixed(2)}°`,
-        },
-        {
-          label: "Полоса петли (факт)",
-          symbol: "fc",
-          value: result.value.fc_actual,
-          unit: "Hz",
-        },
+        { label: t.rowVcoFreq, symbol: "fvco", value: result.value.fVCO, unit: "Hz", highlight: true },
+        { label: t.rowDivN, symbol: "N", value: result.value.N, unit: "", raw: true, rawFormat: (v) => v.toFixed(0), highlight: true },
+        { label: t.rowGeomM, symbol: "m", value: result.value.m, unit: "", raw: true, rawFormat: (v) => v.toFixed(4) },
+        { label: t.rowSeriesR, symbol: "R", value: result.value.R, unit: "Ω", digits: 2, highlight: true },
+        { label: t.rowC1, symbol: "C1", value: result.value.C1, unit: "F", digits: 2, highlight: true },
+        { label: t.rowC2, symbol: "C2", value: result.value.C2, unit: "F", digits: 2, highlight: true },
+        { label: t.rowFz, symbol: "fz", value: result.value.fz, unit: "Hz" },
+        { label: t.rowFp, symbol: "fp", value: result.value.fp, unit: "Hz" },
+        { label: t.rowPhiMActual, symbol: "φm", value: result.value.phiM_actual, unit: "°", raw: true, rawFormat: (v) => `${v.toFixed(2)}°` },
+        { label: t.rowFcActual, symbol: "fc", value: result.value.fc_actual, unit: "Hz" },
       ]
     : [];
 
@@ -214,14 +146,8 @@ export default function LoopFilterCalculator() {
     <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
       {/* ── LEFT: Inputs ── */}
       <div className="flex flex-col gap-4">
-        {/* VCO Configuration */}
-        <Section title="Конфигурация VCO" badge="RF">
-          <Field
-            id={`${id}-frf`}
-            label="Частота RF"
-            unit="MHz"
-            hint="87.5–108 MHz"
-          >
+        <Section title={t.vcoConfig} badge="RF">
+          <Field id={`${id}-frf`} label={t.rfFreq} unit="MHz" hint={t.hintRF}>
             <input
               id={`${id}-frf`}
               className="field"
@@ -233,12 +159,7 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setFRF(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          <Field
-            id={`${id}-fif`}
-            label="Частота ПЧ"
-            unit="MHz"
-            hint="стд: 10.7"
-          >
+          <Field id={`${id}-fif`} label={t.ifFreq} unit="MHz" hint={t.hintIF}>
             <input
               id={`${id}-fif`}
               className="field"
@@ -249,19 +170,12 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setFIF(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          <Field
-            id={`${id}-fref`}
-            label="Опорная частота"
-            unit="kHz"
-            hint="регистр чипа"
-          >
+          <Field id={`${id}-fref`} label={t.refFreq} unit="kHz" hint={t.hintRef}>
             <select
               id={`${id}-fref`}
               className="field field-select"
               value={fref}
-              onChange={(e) =>
-                setFref(parseInt(e.target.value) as RefFrequency)
-              }
+              onChange={(e) => setFref(parseInt(e.target.value) as RefFrequency)}
             >
               {REF_FREQS.map((f) => (
                 <option key={f} value={f}>
@@ -272,14 +186,8 @@ export default function LoopFilterCalculator() {
           </Field>
         </Section>
 
-        {/* PLL Parameters */}
-        <Section title="Параметры PLL" badge="CHIP">
-          <Field
-            id={`${id}-icp`}
-            label="Ток зарядного насоса Icp"
-            unit="mA"
-            hint="измерить на PD1/PD2"
-          >
+        <Section title={t.pllParams} badge="CHIP">
+          <Field id={`${id}-icp`} label={t.chargePumpCurrent} unit="mA" hint={t.hintIcp}>
             <input
               id={`${id}-icp`}
               className="field"
@@ -291,12 +199,7 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setIcp(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          <Field
-            id={`${id}-kvco`}
-            label="Крутизна VCO Kvco"
-            unit="MHz/V"
-            hint="измерено"
-          >
+          <Field id={`${id}-kvco`} label={t.vcoGain} unit="MHz/V" hint={t.hintKvco}>
             <input
               id={`${id}-kvco`}
               className="field"
@@ -309,14 +212,8 @@ export default function LoopFilterCalculator() {
           </Field>
         </Section>
 
-        {/* Loop Design */}
-        <Section title="Параметры петли" badge="DESIGN">
-          <Field
-            id={`${id}-fc`}
-            label="Полоса петли fc"
-            unit="kHz"
-            hint="рек.: fref/10"
-          >
+        <Section title={t.loopDesign} badge="DESIGN">
+          <Field id={`${id}-fc`} label={t.loopBW} unit="kHz" hint={t.hintFc}>
             <input
               id={`${id}-fc`}
               className="field"
@@ -327,12 +224,7 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setFc(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          <Field
-            id={`${id}-phim`}
-            label="Запас по фазе φm"
-            unit="°"
-            hint="30–70°, тип 45°"
-          >
+          <Field id={`${id}-phim`} label={t.phaseMarginField} unit="°" hint={t.hintPhiM}>
             <input
               id={`${id}-phim`}
               className="field"
@@ -344,7 +236,6 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setPhiM(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          {/* Phase margin slider */}
           <div className="mt-1">
             <input
               type="range"
@@ -370,7 +261,6 @@ export default function LoopFilterCalculator() {
 
       {/* ── RIGHT: Results + Plot ── */}
       <div className="flex flex-col gap-4">
-        {/* Error state */}
         {!result.ok && (
           <div className="bg-danger/10 border border-danger/30 rounded-sm p-4 font-mono text-sm text-danger">
             <span className="mr-2">✗</span>
@@ -383,7 +273,7 @@ export default function LoopFilterCalculator() {
             {/* Topology diagram */}
             <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
               <div className="font-mono text-xs text-text-dim mb-3 tracking-wider">
-                ТОПОЛОГИЯ — ПАССИВНЫЙ RC-ФИЛЬТР
+                {t.topologyPassive}
               </div>
               <PassiveFilterDiagram
                 R={formatSI(result.value.R, "Ω", 2)}
@@ -392,26 +282,29 @@ export default function LoopFilterCalculator() {
               />
             </div>
 
-            {/* Results */}
-            <ResultsPanel
-              title="Рассчитанные значения компонентов"
-              rows={rows}
-              warning={
-                result.value.stabilityWarning
-                  ? `fc = ${(result.value.fc_actual / 1000).toFixed(2)} kHz > fref/10 = ${(fref / 10000).toFixed(1)} kHz — риск паразитных спектральных составляющих`
-                  : undefined
-              }
-            />
-
-            {/* Bode plot */}
+            {/* Bode plot — right after topology */}
             {plotData.length > 0 && (
               <FrequencyPlot
                 data={plotData}
                 refs={plotRefs}
-                title="График Боде разомкнутой петли  |G(jω)|"
+                title={t.bodeTitle}
                 showPhase={true}
               />
             )}
+
+            {/* Results */}
+            <ResultsPanel
+              title={t.calcTitleLoop}
+              rows={rows}
+              warning={
+                result.value.stabilityWarning
+                  ? t.stabilityWarning(
+                      (result.value.fc_actual / 1000).toFixed(2),
+                      (fref / 10000).toFixed(1),
+                    )
+                  : undefined
+              }
+            />
           </>
         )}
       </div>

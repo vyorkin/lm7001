@@ -10,6 +10,7 @@ import {
   Legend,
 } from 'recharts'
 import { formatSI } from '../lib/units'
+import { useLocale } from '../i18n'
 
 interface PlotPoint {
   /** log10(frequency) — used as x-axis value */
@@ -28,8 +29,6 @@ interface Props {
   refs?: { logF: number; label: string; color?: string }[]
   title: string
   showPhase?: boolean
-  /** x-axis label suffix */
-  freqUnit?: string
 }
 
 /** Format a frequency for tick labels */
@@ -50,6 +49,8 @@ export default function FrequencyPlot({
   title,
   showPhase = true,
 }: Props) {
+  const t = useLocale()
+
   const tickValues: number[] = []
   if (data.length > 0) {
     const minLog = Math.floor(data[0]!.logF)
@@ -70,20 +71,20 @@ export default function FrequencyPlot({
         <div className="flex items-center gap-4 font-mono text-xs text-text-secondary">
           <span className="flex items-center gap-1.5">
             <span className="w-4 h-px bg-accent inline-block" />
-            Усиление [dB]
+            {t.gainLabel}
           </span>
           {showPhase && (
             <span className="flex items-center gap-1.5">
               <span className="w-4 h-px bg-blue inline-block" />
-              Фаза [°]
+              {t.phaseLabel}
             </span>
           )}
         </div>
       </div>
 
-      <div className="p-2" style={{ height: 220 }}>
+      <div className="p-2" style={{ height: 240 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 20, right: 16, bottom: 8, left: 40 }}>
+          <LineChart data={data} margin={{ top: 22, right: 16, bottom: 10, left: 40 }}>
             <CartesianGrid
               stroke={GRID_COLOR}
               strokeDasharray="0"
@@ -97,15 +98,15 @@ export default function FrequencyPlot({
               domain={['auto', 'auto']}
               ticks={tickValues}
               tickFormatter={(v: number) => fmtFreq(Math.pow(10, v))}
-              tick={{ fill: TICK_COLOR, fontSize: 10, fontFamily: 'Share Tech Mono' }}
+              tick={{ fill: TICK_COLOR, fontSize: 11, fontFamily: 'Share Tech Mono' }}
               axisLine={{ stroke: 'rgba(118,131,144,0.2)' }}
               tickLine={{ stroke: TICK_COLOR }}
               label={{
-                value: 'Частота [Hz]',
+                value: t.freqAxis,
                 position: 'insideBottom',
                 offset: -2,
                 fill: TICK_COLOR,
-                fontSize: 9,
+                fontSize: 11,
                 fontFamily: 'Rajdhani',
               }}
             />
@@ -113,7 +114,7 @@ export default function FrequencyPlot({
             <YAxis
               yAxisId="mag"
               domain={['auto', 'auto']}
-              tick={{ fill: TICK_COLOR, fontSize: 10, fontFamily: 'Share Tech Mono' }}
+              tick={{ fill: TICK_COLOR, fontSize: 11, fontFamily: 'Share Tech Mono' }}
               axisLine={{ stroke: 'rgba(118,131,144,0.2)' }}
               tickLine={{ stroke: TICK_COLOR }}
               tickFormatter={(v: number) => `${v.toFixed(0)}dB`}
@@ -125,7 +126,7 @@ export default function FrequencyPlot({
                 orientation="right"
                 domain={[-180, 180]}
                 ticks={[-180, -135, -90, -45, 0, 45, 90, 135, 180]}
-                tick={{ fill: TICK_COLOR, fontSize: 10, fontFamily: 'Share Tech Mono' }}
+                tick={{ fill: TICK_COLOR, fontSize: 11, fontFamily: 'Share Tech Mono' }}
                 axisLine={{ stroke: 'rgba(118,131,144,0.2)' }}
                 tickLine={{ stroke: TICK_COLOR }}
                 tickFormatter={(v: number) => `${v}°`}
@@ -142,8 +143,8 @@ export default function FrequencyPlot({
                 color: '#adbac7',
               }}
               formatter={(value: number, name: string) => {
-                if (name === 'mag') return [`${value.toFixed(1)} dB`, 'Усиление']
-                if (name === 'phase') return [`${value.toFixed(1)}°`, 'Фаза']
+                if (name === 'mag') return [`${value.toFixed(1)} dB`, t.gainTooltip]
+                if (name === 'phase') return [`${value.toFixed(1)}°`, t.phaseTooltip]
                 return [value, name]
               }}
               labelFormatter={(logF: number) =>
@@ -164,7 +165,7 @@ export default function FrequencyPlot({
                   value: r.label,
                   position: 'top',
                   fill: r.color ?? '#ffaa00',
-                  fontSize: 9,
+                  fontSize: 11,
                   fontFamily: 'Share Tech Mono',
                 }}
               />

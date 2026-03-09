@@ -1,4 +1,5 @@
 import { formatSI } from '../lib/units'
+import { useLocale } from '../i18n'
 
 export interface ResultRow {
   label: string
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function ResultsPanel({ title, rows, warning, note }: Props) {
+  const t = useLocale()
   return (
     <div className="relative bg-bg-panel border border-accent-border rounded-sm panel-glow scanlines overflow-hidden">
       {/* Panel header */}
@@ -29,7 +31,7 @@ export default function ResultsPanel({ title, rows, warning, note }: Props) {
         <span className="font-mono text-xs text-accent tracking-[0.2em] uppercase">
           {title}
         </span>
-        <span className="font-mono text-xs text-text-dim">РАСЧЁТ</span>
+        <span className="font-mono text-xs text-text-dim">{t.calcBadge}</span>
       </div>
 
       {/* Warning banner */}

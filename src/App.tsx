@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import LoopFilterCalculator from './components/LoopFilterCalculator'
 import OutputLPFCalculator from './components/OutputLPFCalculator'
 import ActiveFilterCalculator from './components/ActiveFilterCalculator'
+import { LangContext, useLocale, type Lang } from './i18n'
 
 type Tab = 'loop' | 'lpf' | 'active'
 type Theme = 'dark' | 'light'
@@ -12,9 +13,22 @@ function getInitialTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
 }
 
-export default function App() {
+function getInitialLang(): Lang {
+  const saved = localStorage.getItem('lang')
+  if (saved === 'ru' || saved === 'en') return saved
+  return 'ru'
+}
+
+function AppInner({
+  lang,
+  setLang,
+}: {
+  lang: Lang
+  setLang: (l: Lang) => void
+}) {
   const [tab, setTab] = useState<Tab>('loop')
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  const t = useLocale()
 
   useEffect(() => {
     const html = document.documentElement
@@ -27,6 +41,12 @@ export default function App() {
   }, [theme])
 
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
+
+  const toggleLang = () => {
+    const next: Lang = lang === 'ru' ? 'en' : 'ru'
+    setLang(next)
+    localStorage.setItem('lang', next)
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,11 +62,11 @@ export default function App() {
               LM7001
             </span>
             <span className="font-display text-sm font-600 text-text-secondary uppercase tracking-[0.25em]">
-              Калькулятор фильтра
+              {t.filterCalculator}
             </span>
           </div>
 
-          {/* Chip spec badges + theme toggle */}
+          {/* Chip spec badges + controls */}
           <div className="flex flex-wrap items-center gap-2 text-text-dim font-mono text-xs">
             {['SANYO · EN5262', 'DIP16 · MFP20', 'FM 45–130 MHz'].map((s) => (
               <span
@@ -57,18 +77,23 @@ export default function App() {
               </span>
             ))}
 
+            {/* Language toggle */}
+            <button
+              onClick={toggleLang}
+              title={lang === 'ru' ? 'Switch to English' : 'Переключить на Русский'}
+              className="px-2 py-0.5 border border-accent-border rounded-sm bg-accent-glow hover:bg-accent/10 transition-colors duration-150 text-accent/70 hover:text-accent"
+            >
+              {lang === 'ru' ? 'EN' : 'RU'}
+            </button>
+
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
-              className="ml-1 p-1.5 rounded-sm border border-accent-border bg-accent-glow hover:bg-accent/10 transition-colors duration-150"
-              aria-label="Переключить тему"
+              title={theme === 'dark' ? t.lightTheme : t.darkTheme}
+              className="p-1.5 rounded-sm border border-accent-border bg-accent-glow hover:bg-accent/10 transition-colors duration-150"
+              aria-label={t.toggleTheme}
             >
-              {theme === 'dark' ? (
-                <SunIcon />
-              ) : (
-                <MoonIcon />
-              )}
+              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </button>
           </div>
         </div>
@@ -77,15 +102,15 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 flex gap-0 border-t border-accent-border/40 mt-0">
           <TabButton active={tab === 'loop'} onClick={() => setTab('loop')}>
             <span className="mr-2 opacity-50">①</span>
-            Петлевой фильтр PLL
+            {t.tabLoop}
           </TabButton>
           <TabButton active={tab === 'lpf'} onClick={() => setTab('lpf')}>
             <span className="mr-2 opacity-50">②</span>
-            Выходной ФНЧ
+            {t.tabLpf}
           </TabButton>
           <TabButton active={tab === 'active'} onClick={() => setTab('active')}>
             <span className="mr-2 opacity-50">③</span>
-            Активный фильтр
+            {t.tabActive}
           </TabButton>
 
           {/* flex spacer */}
@@ -115,11 +140,21 @@ export default function App() {
       {/* ── Footer ── */}
       <footer className="border-t border-accent-border/20 py-3 px-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center font-mono text-xs text-text-dim">
-          <span>LM7001J/JM — Sanyo Semiconductor · Документация EN5262 (фев 1997)</span>
+          <span>{t.footerDoc}</span>
           <span>VCO: 87–120 MHz · fref: 1–100 kHz</span>
         </div>
       </footer>
     </div>
+  )
+}
+
+export default function App() {
+  const [lang, setLang] = useState<Lang>(getInitialLang)
+
+  return (
+    <LangContext.Provider value={lang}>
+      <AppInner lang={lang} setLang={setLang} />
+    </LangContext.Provider>
   )
 }
 

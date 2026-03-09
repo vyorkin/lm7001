@@ -4,15 +4,16 @@ import { mhzToHz, TWO_PI, formatSI } from '../lib/units'
 import ResultsPanel, { type ResultRow } from './ResultsPanel'
 import FrequencyPlot from './FrequencyPlot'
 import LPFDiagram from './LPFDiagram'
+import { useLocale } from '../i18n'
 import type { LPFMode, OutputLPFInput } from '../types'
 
 export default function OutputLPFCalculator() {
+  const t = useLocale()
   const id = useId()
   const [mode, setMode] = useState<LPFMode>('lc')
   const [fc_mhz, setFc] = useState(150)
   const [Z0, setZ0] = useState(50)
   const [fVCO_max_mhz, setFVCOMax] = useState(120)
-  // RC mode specifics
   const [rcSolveFor, setRcSolveFor] = useState<'C' | 'R'>('C')
   const [rcR_ohm, setRcR] = useState(100)
   const [rcC_pf, setRcC] = useState(10)
@@ -36,7 +37,6 @@ export default function OutputLPFCalculator() {
 
   const result = useMemo(() => calculateOutputLPF(input), [input])
 
-  // Generate attenuation curve data
   const plotData = useMemo(() => {
     if (!result.ok) return []
     const { fc_actual, mode: m, L, C, R } = result.value
@@ -53,7 +53,6 @@ export default function OutputLPFCalculator() {
         const fc = 1 / (TWO_PI * R * C)
         mag_db = -20 * Math.log10(Math.sqrt(1 + (freq / fc) ** 2))
       } else if (m === 'lc' && L !== undefined && C !== undefined) {
-        // Butterworth 2nd order |H|² = 1 / (1 + (f/fc)^4)
         mag_db = -10 * Math.log10(1 + (freq / fc_actual) ** 4)
       } else {
         continue
@@ -85,22 +84,16 @@ export default function OutputLPFCalculator() {
     if (!result.ok) return []
     const v = result.value
     const base: ResultRow[] = [
-      {
-        label: 'Частота среза (−3 dB)',
-        symbol: 'fc',
-        value: v.fc_actual,
-        unit: 'Hz',
-        highlight: true,
-      },
+      { label: t.rowFc3dB, symbol: 'fc', value: v.fc_actual, unit: 'Hz', highlight: true },
     ]
     if (v.R !== undefined)
-      base.push({ label: 'Резистор', symbol: 'R', value: v.R, unit: 'Ω', highlight: true })
+      base.push({ label: t.rowR, symbol: 'R', value: v.R, unit: 'Ω', highlight: true })
     if (v.C !== undefined)
-      base.push({ label: 'Конденсатор', symbol: 'C', value: v.C, unit: 'F', highlight: true })
+      base.push({ label: t.rowC, symbol: 'C', value: v.C, unit: 'F', highlight: true })
     if (v.L !== undefined)
-      base.push({ label: 'Катушка индуктивности', symbol: 'L', value: v.L, unit: 'H', highlight: true })
+      base.push({ label: t.rowL, symbol: 'L', value: v.L, unit: 'H', highlight: true })
     base.push({
-      label: `Затухание на 2×${fVCO_max_mhz} MHz`,
+      label: t.rowAtten2x(fVCO_max_mhz),
       symbol: 'A2x',
       value: v.atten2x,
       unit: 'dB',
@@ -108,7 +101,7 @@ export default function OutputLPFCalculator() {
       rawFormat: (n) => `${n.toFixed(1)} dB`,
     })
     base.push({
-      label: `Затухание на 3×${fVCO_max_mhz} MHz`,
+      label: t.rowAtten3x(fVCO_max_mhz),
       symbol: 'A3x',
       value: v.atten3x,
       unit: 'dB',
@@ -116,7 +109,7 @@ export default function OutputLPFCalculator() {
       rawFormat: (n) => `${n.toFixed(1)} dB`,
     })
     return base
-  }, [result.ok ? result.value.fc_actual : 0, fVCO_max_mhz])
+  }, [result.ok ? result.value.fc_actual : 0, fVCO_max_mhz, t])
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
@@ -126,21 +119,21 @@ export default function OutputLPFCalculator() {
         <div className="bg-bg-panel border border-accent-border/30 rounded-sm panel-glow">
           <div className="px-4 py-2 border-b border-accent-border/20">
             <span className="font-display text-xs font-600 text-text-secondary uppercase tracking-[0.2em]">
-              Тип фильтра
+              {t.filterType}
             </span>
           </div>
           <div className="p-4 flex gap-3">
             <ModeButton
               active={mode === 'lc'}
               onClick={() => setMode('lc')}
-              title="LC Баттерворт"
-              sub="2-й порядок · −40 dB/дек"
+              title={t.lcButterworth}
+              sub={t.lcSub}
             />
             <ModeButton
               active={mode === 'rc'}
               onClick={() => setMode('rc')}
               title="RC"
-              sub="1-й порядок · −20 dB/дек"
+              sub={t.rcSub}
             />
           </div>
         </div>
@@ -149,14 +142,14 @@ export default function OutputLPFCalculator() {
         <div className="bg-bg-panel border border-accent-border/30 rounded-sm panel-glow corner-bracket">
           <div className="flex items-center justify-between px-4 py-2 border-b border-accent-border/20">
             <span className="font-display text-xs font-600 text-text-secondary uppercase tracking-[0.2em]">
-              Параметры
+              {t.params}
             </span>
             <span className="font-mono text-xs px-1.5 py-0.5 border border-accent-border rounded-sm text-accent/60 bg-accent-glow/50">
               {mode === 'lc' ? 'LC' : 'RC'}
             </span>
           </div>
           <div className="p-4 flex flex-col gap-3">
-            <FieldRow id={`${id}-fc`} label="Целевая частота среза fc" unit="MHz">
+            <FieldRow id={`${id}-fc`} label={t.targetFc} unit="MHz">
               <input
                 id={`${id}-fc`}
                 className="field"
@@ -169,7 +162,7 @@ export default function OutputLPFCalculator() {
             </FieldRow>
 
             {mode === 'lc' && (
-              <FieldRow id={`${id}-z0`} label="Волновое сопротивление Z₀" unit="Ω">
+              <FieldRow id={`${id}-z0`} label={t.impedance} unit="Ω">
                 <input
                   id={`${id}-z0`}
                   className="field"
@@ -184,9 +177,8 @@ export default function OutputLPFCalculator() {
 
             {mode === 'rc' && (
               <>
-                {/* Solve-for toggle */}
                 <div>
-                  <div className="font-display text-xs text-text-secondary mb-2">Вычислить</div>
+                  <div className="font-display text-xs text-text-secondary mb-2">{t.solveFor}</div>
                   <div className="flex gap-2">
                     {(['C', 'R'] as const).map((s) => (
                       <button
@@ -205,7 +197,7 @@ export default function OutputLPFCalculator() {
                   </div>
                 </div>
                 {rcSolveFor === 'C' ? (
-                  <FieldRow id={`${id}-r`} label="Резистор R" unit="Ω">
+                  <FieldRow id={`${id}-r`} label={t.resistorR} unit="Ω">
                     <input
                       id={`${id}-r`}
                       className="field"
@@ -217,7 +209,7 @@ export default function OutputLPFCalculator() {
                     />
                   </FieldRow>
                 ) : (
-                  <FieldRow id={`${id}-c`} label="Конденсатор C" unit="pF">
+                  <FieldRow id={`${id}-c`} label={t.capacitorC} unit="pF">
                     <input
                       id={`${id}-c`}
                       className="field"
@@ -232,7 +224,7 @@ export default function OutputLPFCalculator() {
               </>
             )}
 
-            <FieldRow id={`${id}-fvco`} label="Макс. частота VCO" unit="MHz">
+            <FieldRow id={`${id}-fvco`} label={t.maxVcoFreq} unit="MHz">
               <input
                 id={`${id}-fvco`}
                 className="field"
@@ -249,19 +241,19 @@ export default function OutputLPFCalculator() {
         {/* Harmonic attenuation targets */}
         <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
           <div className="font-display text-xs text-text-secondary uppercase tracking-wider mb-3">
-            Цели по гармоникам
+            {t.harmonics}
           </div>
           <div className="space-y-2 font-mono text-xs text-text-dim">
             <div className="flex justify-between">
-              <span>2-я гармоника</span>
+              <span>{t.harmonic2}</span>
               <span className="text-accent/60">{(fVCO_max_mhz * 2).toFixed(0)} MHz</span>
             </div>
             <div className="flex justify-between">
-              <span>3-я гармоника</span>
+              <span>{t.harmonic3}</span>
               <span className="text-accent/60">{(fVCO_max_mhz * 3).toFixed(0)} MHz</span>
             </div>
             <div className="flex justify-between border-t border-accent-border/20 pt-2 mt-2">
-              <span>Цель: подавить ≥</span>
+              <span>{t.suppressTarget}</span>
               <span className="text-warn">{(fVCO_max_mhz * 2).toFixed(0)} MHz</span>
             </div>
           </div>
@@ -281,7 +273,7 @@ export default function OutputLPFCalculator() {
             {/* Topology diagram */}
             <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
               <div className="font-mono text-xs text-text-dim mb-3 tracking-wider">
-                ТОПОЛОГИЯ
+                {t.topologyLabel}
               </div>
               {mode === 'lc' ? (
                 <LPFDiagram
@@ -298,16 +290,17 @@ export default function OutputLPFCalculator() {
               )}
             </div>
 
-            <ResultsPanel title="Рассчитанные значения фильтра" rows={rows} />
-
+            {/* Attenuation plot — right after topology */}
             {plotData.length > 0 && (
               <FrequencyPlot
                 data={plotData}
                 refs={plotRefs}
-                title="Затухание от частоты"
+                title={t.attenuationTitle}
                 showPhase={false}
               />
             )}
+
+            <ResultsPanel title={t.calcTitleLpf} rows={rows} />
           </>
         )}
       </div>
