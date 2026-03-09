@@ -56,7 +56,7 @@ export default function TopologyDiagram({
   const rX2 = 210;
 
   // Smaller BJT, moved right for clearance from C1 label
-  const bjX = 318, bjY = 160, bjR = 18;
+  const bjX = 318, bjY = 160, bjR = 13;
 
   // Recalculated exit points based on new bjX/bjR
   const colExX = Math.round(bjX + bjR * 0.62);  // ≈ 329
@@ -132,8 +132,8 @@ export default function TopologyDiagram({
       {/* ── BJT base lead ─────────────────────────────────────────────── */}
       <line x1={nbX} y1={nbY} x2={bjX - bjR} y2={nbY} stroke={W} strokeWidth="1.5" />
 
-      {/* ── Transistor label ──────────────────────────────────────────── */}
-      <text x={bjX + bjR + 8} y={bjY + bjR + 4} textAnchor="start" fontSize="10" fill={HL} fontWeight="600">
+      {/* ── Transistor label (above BJT, right of collector wire) ──────── */}
+      <text x={bjX + bjR + 6} y={bjY - bjR - 5} textAnchor="start" fontSize="10" fill={HL} fontWeight="600">
         Q1 {transistorType}
       </text>
     </svg>
@@ -149,7 +149,7 @@ function VertRes({
 }) {
   const mid = (y1 + y2) / 2;
   const h = (y2 - y1) * 0.65;
-  const bw = 9;
+  const bw = 6;
   const lx = labelRight ? x + bw + 7 : x - bw - 7;
   const anchor = labelRight ? "start" : "end";
   return (
@@ -172,14 +172,14 @@ function HorizRes({
 }) {
   const mid = (x1 + x2) / 2;
   const w = (x2 - x1) * 0.65;
-  const bh = 6;
+  const bh = 4;
   return (
     <g>
       <rect
         x={mid - w / 2} y={y - bh} width={w} height={bh * 2}
         fill="rgba(118,131,144,0.06)" stroke={A} strokeWidth="1.2" rx="1.5" opacity="0.75"
       />
-      <text x={mid} y={y - bh - 10} textAnchor="middle" fontSize="10" fill={HL} fontWeight="500">
+      <text x={mid} y={y - bh - 8} textAnchor="middle" fontSize="10" fill={HL} fontWeight="500">
         [{label}]
       </text>
     </g>
@@ -192,16 +192,16 @@ function VertCap({
   x: number; y1: number; y2: number; label: string; labelSide: "left" | "right";
 }) {
   const mid = (y1 + y2) / 2;
-  const gap = 5;
-  const pw = 10;
+  const gap = 4;
+  const pw = 8;
   const lx = labelSide === "left" ? x - pw / 2 - 7 : x + pw / 2 + 7;
   const anchor = labelSide === "left" ? "end" : "start";
   return (
     <g>
       <line x1={x - pw / 2} y1={mid - gap / 2} x2={x + pw / 2} y2={mid - gap / 2}
-        stroke={A} strokeWidth="2.2" opacity="0.8" strokeLinecap="round" />
+        stroke={A} strokeWidth="2" opacity="0.8" strokeLinecap="round" />
       <line x1={x - pw / 2} y1={mid + gap / 2} x2={x + pw / 2} y2={mid + gap / 2}
-        stroke={A} strokeWidth="2.2" opacity="0.8" strokeLinecap="round" />
+        stroke={A} strokeWidth="2" opacity="0.8" strokeLinecap="round" />
       <text x={lx} y={mid + 4} textAnchor={anchor} fontSize="10" fill={HL} fontWeight="500">
         [{label}]
       </text>
@@ -212,9 +212,9 @@ function VertCap({
 function GndSym({ x, y }: { x: number; y: number }) {
   return (
     <g opacity="0.55">
-      <line x1={x - 8} y1={y} x2={x + 8} y2={y} stroke={A} strokeWidth="1.5" />
-      <line x1={x - 5} y1={y + 4} x2={x + 5} y2={y + 4} stroke={A} strokeWidth="1.2" />
-      <line x1={x - 2.5} y1={y + 8} x2={x + 2.5} y2={y + 8} stroke={A} strokeWidth="1" />
+      <line x1={x - 6} y1={y} x2={x + 6} y2={y} stroke={A} strokeWidth="1.5" />
+      <line x1={x - 4} y1={y + 3} x2={x + 4} y2={y + 3} stroke={A} strokeWidth="1.2" />
+      <line x1={x - 2} y1={y + 6} x2={x + 2} y2={y + 6} stroke={A} strokeWidth="1" />
     </g>
   );
 }

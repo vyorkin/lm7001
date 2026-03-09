@@ -89,7 +89,7 @@ export default function LPFDiagram({ mode, seriesLabel, shuntLabel }: Props) {
 function HorizRes({ x1, x2, y, label }: { x1: number; x2: number; y: number; label: string }) {
   const mid = (x1 + x2) / 2;
   const w = (x2 - x1) * 0.65;
-  const bh = 6;
+  const bh = 4;
   return (
     <g>
       <rect x={mid - w / 2} y={y - bh} width={w} height={bh * 2}
@@ -123,14 +123,14 @@ function InductorH({ x1, x2, y, label }: { x1: number; x2: number; y: number; la
 
 function VertCap({ x, y1, y2, label }: { x: number; y1: number; y2: number; label: string }) {
   const mid = (y1 + y2) / 2;
-  const pw = 10;
-  const gap = 5;
+  const pw = 8;
+  const gap = 4;
   return (
     <g>
       <line x1={x - pw / 2} y1={mid - gap / 2} x2={x + pw / 2} y2={mid - gap / 2}
-        stroke={A} strokeWidth="2.2" strokeLinecap="round" opacity="0.8" />
+        stroke={A} strokeWidth="2" strokeLinecap="round" opacity="0.8" />
       <line x1={x - pw / 2} y1={mid + gap / 2} x2={x + pw / 2} y2={mid + gap / 2}
-        stroke={A} strokeWidth="2.2" strokeLinecap="round" opacity="0.8" />
+        stroke={A} strokeWidth="2" strokeLinecap="round" opacity="0.8" />
       <text x={x + pw / 2 + 7} y={mid + 4} textAnchor="start" fontSize="10" fill={HL} fontWeight="500">
         [{label}]
       </text>
@@ -141,9 +141,9 @@ function VertCap({ x, y1, y2, label }: { x: number; y1: number; y2: number; labe
 function GndSym({ x, y }: { x: number; y: number }) {
   return (
     <g opacity="0.5">
-      <line x1={x - 8} y1={y} x2={x + 8} y2={y} stroke={A} strokeWidth="1.5" />
-      <line x1={x - 5} y1={y + 4} x2={x + 5} y2={y + 4} stroke={A} strokeWidth="1.2" />
-      <line x1={x - 2.5} y1={y + 8} x2={x + 2.5} y2={y + 8} stroke={A} strokeWidth="1" />
+      <line x1={x - 6} y1={y} x2={x + 6} y2={y} stroke={A} strokeWidth="1.5" />
+      <line x1={x - 4} y1={y + 3} x2={x + 4} y2={y + 3} stroke={A} strokeWidth="1.2" />
+      <line x1={x - 2} y1={y + 6} x2={x + 2} y2={y + 6} stroke={A} strokeWidth="1" />
     </g>
   );
 }
