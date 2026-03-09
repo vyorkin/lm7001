@@ -1,11 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import LoopFilterCalculator from './components/LoopFilterCalculator'
 import OutputLPFCalculator from './components/OutputLPFCalculator'
+import ActiveFilterCalculator from './components/ActiveFilterCalculator'
 
-type Tab = 'loop' | 'lpf'
+type Tab = 'loop' | 'lpf' | 'active'
+type Theme = 'dark' | 'light'
+
+function getInitialTheme(): Theme {
+  const saved = localStorage.getItem('theme')
+  if (saved === 'dark' || saved === 'light') return saved
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+}
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('loop')
+  const [theme, setTheme] = useState<Theme>(getInitialTheme)
+
+  useEffect(() => {
+    const html = document.documentElement
+    if (theme === 'light') {
+      html.classList.add('light')
+    } else {
+      html.classList.remove('light')
+    }
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -21,11 +42,11 @@ export default function App() {
               LM7001
             </span>
             <span className="font-display text-sm font-600 text-text-secondary uppercase tracking-[0.25em]">
-              Filter Calculator
+              Калькулятор фильтра
             </span>
           </div>
 
-          {/* Chip spec badges */}
+          {/* Chip spec badges + theme toggle */}
           <div className="flex flex-wrap items-center gap-2 text-text-dim font-mono text-xs">
             {['SANYO · EN5262', 'DIP16 · MFP20', 'FM 45–130 MHz'].map((s) => (
               <span
@@ -35,6 +56,20 @@ export default function App() {
                 {s}
               </span>
             ))}
+
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+              className="ml-1 p-1.5 rounded-sm border border-accent-border bg-accent-glow hover:bg-accent/10 transition-colors duration-150"
+              aria-label="Переключить тему"
+            >
+              {theme === 'dark' ? (
+                <SunIcon />
+              ) : (
+                <MoonIcon />
+              )}
+            </button>
           </div>
         </div>
 
@@ -42,11 +77,15 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 flex gap-0 border-t border-accent-border/40 mt-0">
           <TabButton active={tab === 'loop'} onClick={() => setTab('loop')}>
             <span className="mr-2 opacity-50">①</span>
-            PLL Loop Filter
+            Петлевой фильтр PLL
           </TabButton>
           <TabButton active={tab === 'lpf'} onClick={() => setTab('lpf')}>
             <span className="mr-2 opacity-50">②</span>
-            Output LPF
+            Выходной ФНЧ
+          </TabButton>
+          <TabButton active={tab === 'active'} onClick={() => setTab('active')}>
+            <span className="mr-2 opacity-50">③</span>
+            Активный фильтр
           </TabButton>
 
           {/* flex spacer */}
@@ -66,12 +105,17 @@ export default function App() {
             <OutputLPFCalculator />
           </div>
         )}
+        {tab === 'active' && (
+          <div className="tab-content">
+            <ActiveFilterCalculator />
+          </div>
+        )}
       </main>
 
       {/* ── Footer ── */}
       <footer className="border-t border-accent-border/20 py-3 px-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center font-mono text-xs text-text-dim">
-          <span>LM7001J/JM — Sanyo Semiconductor · Datasheet EN5262 (Feb 1997)</span>
+          <span>LM7001J/JM — Sanyo Semiconductor · Документация EN5262 (фев 1997)</span>
           <span>VCO: 87–120 MHz · fref: 1–100 kHz</span>
         </div>
       </footer>
@@ -99,5 +143,29 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
     >
       {children}
     </button>
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
   )
 }

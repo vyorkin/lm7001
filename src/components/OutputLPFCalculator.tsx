@@ -1,8 +1,9 @@
 import { useState, useMemo, useId } from 'react'
 import { calculateOutputLPF } from '../lib/outputLpf'
-import { mhzToHz, TWO_PI } from '../lib/units'
+import { mhzToHz, TWO_PI, formatSI } from '../lib/units'
 import ResultsPanel, { type ResultRow } from './ResultsPanel'
 import FrequencyPlot from './FrequencyPlot'
+import LPFDiagram from './LPFDiagram'
 import type { LPFMode, OutputLPFInput } from '../types'
 
 export default function OutputLPFCalculator() {
@@ -85,7 +86,7 @@ export default function OutputLPFCalculator() {
     const v = result.value
     const base: ResultRow[] = [
       {
-        label: 'Cutoff frequency (−3 dB)',
+        label: 'Частота среза (−3 dB)',
         symbol: 'fc',
         value: v.fc_actual,
         unit: 'Hz',
@@ -93,13 +94,13 @@ export default function OutputLPFCalculator() {
       },
     ]
     if (v.R !== undefined)
-      base.push({ label: 'Resistor', symbol: 'R', value: v.R, unit: 'Ω', highlight: true })
+      base.push({ label: 'Резистор', symbol: 'R', value: v.R, unit: 'Ω', highlight: true })
     if (v.C !== undefined)
-      base.push({ label: 'Capacitor', symbol: 'C', value: v.C, unit: 'F', highlight: true })
+      base.push({ label: 'Конденсатор', symbol: 'C', value: v.C, unit: 'F', highlight: true })
     if (v.L !== undefined)
-      base.push({ label: 'Inductor', symbol: 'L', value: v.L, unit: 'H', highlight: true })
+      base.push({ label: 'Катушка индуктивности', symbol: 'L', value: v.L, unit: 'H', highlight: true })
     base.push({
-      label: `Attenuation at 2×${fVCO_max_mhz} MHz`,
+      label: `Затухание на 2×${fVCO_max_mhz} MHz`,
       symbol: 'A2x',
       value: v.atten2x,
       unit: 'dB',
@@ -107,7 +108,7 @@ export default function OutputLPFCalculator() {
       rawFormat: (n) => `${n.toFixed(1)} dB`,
     })
     base.push({
-      label: `Attenuation at 3×${fVCO_max_mhz} MHz`,
+      label: `Затухание на 3×${fVCO_max_mhz} MHz`,
       symbol: 'A3x',
       value: v.atten3x,
       unit: 'dB',
@@ -125,21 +126,21 @@ export default function OutputLPFCalculator() {
         <div className="bg-bg-panel border border-accent-border/30 rounded-sm panel-glow">
           <div className="px-4 py-2 border-b border-accent-border/20">
             <span className="font-display text-xs font-600 text-text-secondary uppercase tracking-[0.2em]">
-              Filter Type
+              Тип фильтра
             </span>
           </div>
           <div className="p-4 flex gap-3">
             <ModeButton
               active={mode === 'lc'}
               onClick={() => setMode('lc')}
-              title="LC Butterworth"
-              sub="2nd order · −40 dB/dec"
+              title="LC Баттерворт"
+              sub="2-й порядок · −40 dB/дек"
             />
             <ModeButton
               active={mode === 'rc'}
               onClick={() => setMode('rc')}
               title="RC"
-              sub="1st order · −20 dB/dec"
+              sub="1-й порядок · −20 dB/дек"
             />
           </div>
         </div>
@@ -148,14 +149,14 @@ export default function OutputLPFCalculator() {
         <div className="bg-bg-panel border border-accent-border/30 rounded-sm panel-glow corner-bracket">
           <div className="flex items-center justify-between px-4 py-2 border-b border-accent-border/20">
             <span className="font-display text-xs font-600 text-text-secondary uppercase tracking-[0.2em]">
-              Parameters
+              Параметры
             </span>
             <span className="font-mono text-xs px-1.5 py-0.5 border border-accent-border rounded-sm text-accent/60 bg-accent-glow/50">
               {mode === 'lc' ? 'LC' : 'RC'}
             </span>
           </div>
           <div className="p-4 flex flex-col gap-3">
-            <FieldRow id={`${id}-fc`} label="Target cutoff fc" unit="MHz">
+            <FieldRow id={`${id}-fc`} label="Целевая частота среза fc" unit="MHz">
               <input
                 id={`${id}-fc`}
                 className="field"
@@ -168,7 +169,7 @@ export default function OutputLPFCalculator() {
             </FieldRow>
 
             {mode === 'lc' && (
-              <FieldRow id={`${id}-z0`} label="Impedance Z₀" unit="Ω">
+              <FieldRow id={`${id}-z0`} label="Волновое сопротивление Z₀" unit="Ω">
                 <input
                   id={`${id}-z0`}
                   className="field"
@@ -185,7 +186,7 @@ export default function OutputLPFCalculator() {
               <>
                 {/* Solve-for toggle */}
                 <div>
-                  <div className="font-display text-xs text-text-secondary mb-2">Solve for</div>
+                  <div className="font-display text-xs text-text-secondary mb-2">Вычислить</div>
                   <div className="flex gap-2">
                     {(['C', 'R'] as const).map((s) => (
                       <button
@@ -204,7 +205,7 @@ export default function OutputLPFCalculator() {
                   </div>
                 </div>
                 {rcSolveFor === 'C' ? (
-                  <FieldRow id={`${id}-r`} label="Resistor R" unit="Ω">
+                  <FieldRow id={`${id}-r`} label="Резистор R" unit="Ω">
                     <input
                       id={`${id}-r`}
                       className="field"
@@ -216,7 +217,7 @@ export default function OutputLPFCalculator() {
                     />
                   </FieldRow>
                 ) : (
-                  <FieldRow id={`${id}-c`} label="Capacitor C" unit="pF">
+                  <FieldRow id={`${id}-c`} label="Конденсатор C" unit="pF">
                     <input
                       id={`${id}-c`}
                       className="field"
@@ -231,7 +232,7 @@ export default function OutputLPFCalculator() {
               </>
             )}
 
-            <FieldRow id={`${id}-fvco`} label="VCO max freq" unit="MHz">
+            <FieldRow id={`${id}-fvco`} label="Макс. частота VCO" unit="MHz">
               <input
                 id={`${id}-fvco`}
                 className="field"
@@ -248,19 +249,19 @@ export default function OutputLPFCalculator() {
         {/* Harmonic attenuation targets */}
         <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
           <div className="font-display text-xs text-text-secondary uppercase tracking-wider mb-3">
-            Harmonic Targets
+            Цели по гармоникам
           </div>
           <div className="space-y-2 font-mono text-xs text-text-dim">
             <div className="flex justify-between">
-              <span>2nd harmonic</span>
+              <span>2-я гармоника</span>
               <span className="text-accent/60">{(fVCO_max_mhz * 2).toFixed(0)} MHz</span>
             </div>
             <div className="flex justify-between">
-              <span>3rd harmonic</span>
+              <span>3-я гармоника</span>
               <span className="text-accent/60">{(fVCO_max_mhz * 3).toFixed(0)} MHz</span>
             </div>
             <div className="flex justify-between border-t border-accent-border/20 pt-2 mt-2">
-              <span>Goal: suppress ≥</span>
+              <span>Цель: подавить ≥</span>
               <span className="text-warn">{(fVCO_max_mhz * 2).toFixed(0)} MHz</span>
             </div>
           </div>
@@ -277,40 +278,33 @@ export default function OutputLPFCalculator() {
 
         {result.ok && (
           <>
-            {/* LC topology */}
-            {mode === 'lc' && (
-              <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
-                <div className="font-mono text-xs text-text-dim mb-2 tracking-wider">TOPOLOGY — LC Butterworth 2nd Order</div>
-                <pre className="font-mono text-xs text-accent/50 leading-tight select-none">
-{`VCO ──── L ────┬──── Load (Z0)
-               │
-               C
-               │
-              GND`}
-                </pre>
+            {/* Topology diagram */}
+            <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
+              <div className="font-mono text-xs text-text-dim mb-3 tracking-wider">
+                ТОПОЛОГИЯ
               </div>
-            )}
+              {mode === 'lc' ? (
+                <LPFDiagram
+                  mode="lc"
+                  seriesLabel={result.value.L != null ? formatSI(result.value.L, "H", 2) : "L"}
+                  shuntLabel={result.value.C != null ? formatSI(result.value.C, "F", 2) : "C"}
+                />
+              ) : (
+                <LPFDiagram
+                  mode="rc"
+                  seriesLabel={result.value.R != null ? formatSI(result.value.R, "Ω", 2) : "R"}
+                  shuntLabel={result.value.C != null ? formatSI(result.value.C, "F", 2) : "C"}
+                />
+              )}
+            </div>
 
-            {mode === 'rc' && (
-              <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
-                <div className="font-mono text-xs text-text-dim mb-2 tracking-wider">TOPOLOGY — RC 1st Order</div>
-                <pre className="font-mono text-xs text-accent/50 leading-tight select-none">
-{`VCO ──── R ────┬──── Output
-               │
-               C
-               │
-              GND`}
-                </pre>
-              </div>
-            )}
-
-            <ResultsPanel title="Computed Filter Values" rows={rows} />
+            <ResultsPanel title="Рассчитанные значения фильтра" rows={rows} />
 
             {plotData.length > 0 && (
               <FrequencyPlot
                 data={plotData}
                 refs={plotRefs}
-                title="Attenuation vs Frequency"
+                title="Затухание от частоты"
                 showPhase={false}
               />
             )}
@@ -338,7 +332,7 @@ function ModeButton({
       className={[
         'flex-1 text-left p-3 border rounded-sm transition-all duration-150',
         active
-          ? 'border-accent bg-accent-glow shadow-[0_0_12px_rgba(0,255,204,0.1)]'
+          ? 'border-accent bg-accent-glow shadow-[0_0_12px_rgba(118,131,144,0.12)]'
           : 'border-accent-border bg-bg-raised hover:border-accent/40',
       ].join(' ')}
     >

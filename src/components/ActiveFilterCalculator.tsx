@@ -1,14 +1,18 @@
 import { useState, useMemo, useId } from "react";
-import { calculateLoopFilter } from "../lib/loopFilter";
+import { calculateActiveFilter, TRANSISTOR_PRESETS } from "../lib/activeFilter";
 import { hzToRad, mAtoA, khzToHz, mhzToHz, formatSI } from "../lib/units";
 import ResultsPanel, { type ResultRow } from "./ResultsPanel";
 import FrequencyPlot from "./FrequencyPlot";
-import PassiveFilterDiagram from "./PassiveFilterDiagram";
-import type { LoopFilterInput, RefFrequency } from "../types";
+import TopologyDiagram from "./TopologyDiagram";
+import type { ActiveFilterInput, RefFrequency, TransistorType } from "../types";
 
 const REF_FREQS: RefFrequency[] = [
   1000, 5000, 9000, 10000, 25000, 50000, 100000,
 ];
+
+const CUSTOM_PRESET_NAME = "Пользовательский";
+
+const DEFAULT_PRESET = TRANSISTOR_PRESETS.find((p) => p.name === "BC547B")!;
 
 const DEFAULT_INPUT = {
   fRF_mhz: 90.0,
@@ -18,9 +22,14 @@ const DEFAULT_INPUT = {
   Kvco_mhz_v: 10.0,
   fc_khz: 2.5,
   phiM: 45,
+  presetName: DEFAULT_PRESET.name,
+  transistorType: DEFAULT_PRESET.type,
+  hFE: DEFAULT_PRESET.hFE_min,
+  Vcc: 9,
+  Ic_q_ma: 1.0,
 };
 
-export default function LoopFilterCalculator() {
+export default function ActiveFilterCalculator() {
   const [fRF_mhz, setFRF] = useState(DEFAULT_INPUT.fRF_mhz);
   const [fIF_mhz, setFIF] = useState(DEFAULT_INPUT.fIF_mhz);
   const [fref, setFref] = useState<RefFrequency>(DEFAULT_INPUT.fref);
@@ -29,9 +38,26 @@ export default function LoopFilterCalculator() {
   const [fc_khz, setFc] = useState(DEFAULT_INPUT.fc_khz);
   const [phiM, setPhiM] = useState(DEFAULT_INPUT.phiM);
 
+  const [presetName, setPresetName] = useState(DEFAULT_INPUT.presetName);
+  const [transistorType, setTransistorType] = useState<TransistorType>(
+    DEFAULT_INPUT.transistorType,
+  );
+  const [hFE, setHFE] = useState(DEFAULT_INPUT.hFE);
+  const [Vcc, setVcc] = useState(DEFAULT_INPUT.Vcc);
+  const [Ic_q_ma, setIcq] = useState(DEFAULT_INPUT.Ic_q_ma);
+
   const id = useId();
 
-  const input: LoopFilterInput = {
+  function applyPreset(name: string) {
+    setPresetName(name);
+    const preset = TRANSISTOR_PRESETS.find((p) => p.name === name);
+    if (preset && name !== CUSTOM_PRESET_NAME) {
+      setTransistorType(preset.type);
+      setHFE(preset.hFE_min);
+    }
+  }
+
+  const input: ActiveFilterInput = {
     fRF: mhzToHz(fRF_mhz),
     fIF: mhzToHz(fIF_mhz),
     fref,
@@ -39,10 +65,14 @@ export default function LoopFilterCalculator() {
     Kvco: mhzToHz(Kvco_mhz_v),
     fc: khzToHz(fc_khz),
     phiM,
+    hFE,
+    Vcc,
+    Ic_q: mAtoA(Ic_q_ma),
+    transistorType,
   };
 
   const result = useMemo(
-    () => calculateLoopFilter(input),
+    () => calculateActiveFilter(input),
     [
       input.fRF,
       input.fIF,
@@ -51,10 +81,14 @@ export default function LoopFilterCalculator() {
       input.Kvco,
       input.fc,
       input.phiM,
+      input.hFE,
+      input.Vcc,
+      input.Ic_q,
+      input.transistorType,
     ],
   );
 
-  // Generate Bode plot data
+  // Bode plot data (same as passive loop filter)
   const plotData = useMemo(() => {
     if (!result.ok) return [];
     const { R, C1, C2, N } = result.value;
@@ -71,19 +105,15 @@ export default function LoopFilterCalculator() {
       const freq = Math.pow(10, logF);
       const w = 2 * Math.PI * freq;
 
-      // Loop filter F(s)
-      // F(jw) = (1 + jw*R*C1) / [ jw*(C1+C2)*(1 + jw*R*C1*C2/(C1+C2)) ]
       const Ctot = C1 + C2;
-      const tau1 = R * C1; // zero: ωz = 1/tau1
-      const tau2 = (R * C1 * C2) / Ctot; // pole contribution
+      const tau1 = R * C1;
+      const tau2 = (R * C1 * C2) / Ctot;
 
-      // Numerator: 1 + j*w*tau1
       const numRe = 1;
       const numIm = w * tau1;
       const numMag = Math.sqrt(numRe * numRe + numIm * numIm);
       const numPhase = Math.atan2(numIm, numRe);
 
-      // Denominator: jw*Ctot*(1 + j*w*tau2) — magnitude and phase
       const den1Mag = w * Ctot;
       const den1Phase = Math.PI / 2;
       const den2Re = 1;
@@ -94,7 +124,6 @@ export default function LoopFilterCalculator() {
       const F_mag = numMag / (den1Mag * den2Mag);
       const F_phase = numPhase - den1Phase - den2Phase;
 
-      // Open-loop G(jw) = (Icp/(2π)) * (Kvco_rad/N) * F(jw) / (j*w)
       const gain_factor = (Icp / (2 * Math.PI)) * (Kvco_rad / N);
       const G_mag = (gain_factor * F_mag) / w;
       const G_phase = F_phase - Math.PI / 2;
@@ -102,9 +131,7 @@ export default function LoopFilterCalculator() {
       const mag_db = 20 * Math.log10(G_mag);
       const phase_deg = (G_phase * 180) / Math.PI;
 
-      // Clamp to reasonable display range
       if (mag_db < -80 || mag_db > 80) continue;
-
       points.push({ logF, freq, mag: mag_db, phase: phase_deg });
     }
     return points;
@@ -131,7 +158,7 @@ export default function LoopFilterCalculator() {
     ];
   }, [result.ok ? result.value.fc_actual : 0]);
 
-  const rows: ResultRow[] = result.ok
+  const pllRows: ResultRow[] = result.ok
     ? [
         {
           label: "Частота VCO",
@@ -201,14 +228,69 @@ export default function LoopFilterCalculator() {
           raw: true,
           rawFormat: (v) => `${v.toFixed(2)}°`,
         },
+      ]
+    : [];
+
+  const transistorRows: ResultRow[] = result.ok
+    ? [
         {
-          label: "Полоса петли (факт)",
-          symbol: "fc",
-          value: result.value.fc_actual,
-          unit: "Hz",
+          label: "Напряжение настройки VCO",
+          symbol: "Vt",
+          value: result.value.Vtune_q,
+          unit: "V",
+          raw: true,
+          rawFormat: (v) => `${v.toFixed(3)} В`,
+          highlight: true,
+        },
+        {
+          label: "Ток коллектора (покой)",
+          symbol: "Ic",
+          value: result.value.Ic_q,
+          unit: "A",
+          digits: 2,
+        },
+        {
+          label: "Ток базы",
+          symbol: "Ib",
+          value: result.value.Ib,
+          unit: "A",
+          digits: 2,
+        },
+        {
+          label: "Резистор коллектора",
+          symbol: "Rc",
+          value: result.value.Rc,
+          unit: "Ω",
+          digits: 2,
+          highlight: true,
+        },
+        {
+          label: "Базовый резистор",
+          symbol: "Rb",
+          value: result.value.Rb,
+          unit: "Ω",
+          digits: 2,
+          highlight: true,
+        },
+        {
+          label: "Вых. сопротивление (пасс.)",
+          symbol: "Zp",
+          value: result.value.Z_out_passive,
+          unit: "Ω",
+          digits: 2,
+        },
+        {
+          label: "Вых. сопротивление (акт.)",
+          symbol: "Za",
+          value: result.value.Z_out,
+          unit: "Ω",
+          digits: 2,
+          highlight: true,
         },
       ]
     : [];
+
+  const selectedPreset = TRANSISTOR_PRESETS.find((p) => p.name === presetName);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
@@ -278,7 +360,7 @@ export default function LoopFilterCalculator() {
             id={`${id}-icp`}
             label="Ток зарядного насоса Icp"
             unit="mA"
-            hint="измерить на PD1/PD2"
+            hint="PD1/PD2"
           >
             <input
               id={`${id}-icp`}
@@ -344,7 +426,6 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setPhiM(parseFloat(e.target.value) || 0)}
             />
           </Field>
-          {/* Phase margin slider */}
           <div className="mt-1">
             <input
               type="range"
@@ -366,11 +447,109 @@ export default function LoopFilterCalculator() {
             </div>
           </div>
         </Section>
+
+        {/* Transistor */}
+        <Section title="Транзистор" badge="BJT">
+          {/* Preset selector */}
+          <Field id={`${id}-preset`} label="Модель транзистора" unit="">
+            <select
+              id={`${id}-preset`}
+              className="field field-select"
+              value={presetName}
+              onChange={(e) => applyPreset(e.target.value)}
+            >
+              {TRANSISTOR_PRESETS.map((p) => (
+                <option key={p.name} value={p.name}>
+                  {p.name}
+                  {p.name !== CUSTOM_PRESET_NAME
+                    ? ` (${p.type}, hFE≥${p.hFE_min})`
+                    : ""}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          {/* Description badge */}
+          {selectedPreset && selectedPreset.name !== CUSTOM_PRESET_NAME && (
+            <div className="font-mono text-xs text-text-dim bg-accent-glow/30 border border-accent-border/20 rounded-sm px-2 py-1">
+              {selectedPreset.description} · hFE typ: {selectedPreset.hFE_typ}
+            </div>
+          )}
+
+          {/* NPN / PNP toggle */}
+          <div>
+            <div className="font-display text-sm font-500 text-text-secondary mb-1">
+              Тип
+            </div>
+            <div className="flex gap-2">
+              {(["NPN", "PNP"] as TransistorType[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTransistorType(t)}
+                  className={[
+                    "flex-1 py-1.5 font-mono text-sm border rounded-sm transition-all duration-100",
+                    transistorType === t
+                      ? "border-accent bg-accent-glow text-accent glow-sm"
+                      : "border-accent-border/40 text-text-dim hover:border-accent-border hover:text-text-secondary",
+                  ].join(" ")}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Field id={`${id}-hfe`} label="Усиление тока hFE" unit="" hint="мин.">
+            <input
+              id={`${id}-hfe`}
+              className="field"
+              type="number"
+              step="10"
+              min="10"
+              max="1000"
+              value={hFE}
+              onChange={(e) => {
+                setHFE(parseInt(e.target.value) || 0);
+                setPresetName(CUSTOM_PRESET_NAME);
+              }}
+            />
+          </Field>
+
+          <Field id={`${id}-vcc`} label="Напряжение питания Vcc" unit="В">
+            <input
+              id={`${id}-vcc`}
+              className="field"
+              type="number"
+              step="0.5"
+              min="3"
+              max="24"
+              value={Vcc}
+              onChange={(e) => setVcc(parseFloat(e.target.value) || 0)}
+            />
+          </Field>
+
+          <Field
+            id={`${id}-icq`}
+            label="Ток покоя Ic"
+            unit="mA"
+            hint="0.5–5 мА"
+          >
+            <input
+              id={`${id}-icq`}
+              className="field"
+              type="number"
+              step="0.1"
+              min="0.1"
+              max="50"
+              value={Ic_q_ma}
+              onChange={(e) => setIcq(parseFloat(e.target.value) || 0)}
+            />
+          </Field>
+        </Section>
       </div>
 
       {/* ── RIGHT: Results + Plot ── */}
       <div className="flex flex-col gap-4">
-        {/* Error state */}
         {!result.ok && (
           <div className="bg-danger/10 border border-danger/30 rounded-sm p-4 font-mono text-sm text-danger">
             <span className="mr-2">✗</span>
@@ -383,24 +562,34 @@ export default function LoopFilterCalculator() {
             {/* Topology diagram */}
             <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
               <div className="font-mono text-xs text-text-dim mb-3 tracking-wider">
-                ТОПОЛОГИЯ — ПАССИВНЫЙ RC-ФИЛЬТР
+                ТОПОЛОГИЯ — {transistorType} ЭМИТТЕРНЫЙ ПОВТОРИТЕЛЬ
               </div>
-              <PassiveFilterDiagram
+              <TopologyDiagram
+                transistorType={transistorType}
+                Rc={formatSI(result.value.Rc, "Ω", 2)}
+                Rb={formatSI(result.value.Rb, "Ω", 2)}
                 R={formatSI(result.value.R, "Ω", 2)}
                 C1={formatSI(result.value.C1, "F", 2)}
                 C2={formatSI(result.value.C2, "F", 2)}
               />
             </div>
 
-            {/* Results */}
+            {/* RC filter results */}
             <ResultsPanel
-              title="Рассчитанные значения компонентов"
-              rows={rows}
+              title="Компоненты RC-фильтра"
+              rows={pllRows}
               warning={
                 result.value.stabilityWarning
-                  ? `fc = ${(result.value.fc_actual / 1000).toFixed(2)} kHz > fref/10 = ${(fref / 10000).toFixed(1)} kHz — риск паразитных спектральных составляющих`
+                  ? `fc = ${(result.value.fc_actual / 1000).toFixed(2)} kHz > fref/10 = ${(fref / 10000).toFixed(1)} kHz — риск паразитных составляющих`
                   : undefined
               }
+            />
+
+            {/* Transistor results */}
+            <ResultsPanel
+              title="Параметры транзисторного каскада"
+              rows={transistorRows}
+              note={`Снижение Z_вых: ${(result.value.Z_out_passive / result.value.Z_out).toFixed(0)}× (${transistorType}, hFE=${hFE})`}
             />
 
             {/* Bode plot */}
@@ -474,9 +663,11 @@ function Field({
         </label>
         {children}
       </div>
-      <div className="font-mono text-xs text-accent/50 self-end pb-1.5 pt-6 whitespace-nowrap">
-        {unit}
-      </div>
+      {unit && (
+        <div className="font-mono text-xs text-accent/50 self-end pb-1.5 pt-6 whitespace-nowrap">
+          {unit}
+        </div>
+      )}
     </div>
   );
 }

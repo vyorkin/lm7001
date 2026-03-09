@@ -57,6 +57,41 @@ export interface LoopFilterResult {
 }
 
 // ---------------------------------------------------------------------------
+// Calculator C — Active Filter (transistor emitter follower)
+// ---------------------------------------------------------------------------
+
+export type TransistorType = 'NPN' | 'PNP'
+
+export interface TransistorPreset {
+  name: string
+  type: TransistorType
+  hFE_min: number
+  hFE_typ: number
+  Vbe: number
+  description: string
+}
+
+export interface ActiveFilterInput extends LoopFilterInput {
+  hFE: number
+  Vcc: number
+  Ic_q: number          // [A]
+  transistorType: TransistorType
+}
+
+export interface ActiveFilterResult extends LoopFilterResult {
+  hFE: number
+  Vcc: number
+  Vbe: number
+  Ic_q: number
+  Ib: number
+  Rc: number
+  Rb: number
+  Vtune_q: number
+  Z_out: number
+  Z_out_passive: number
+}
+
+// ---------------------------------------------------------------------------
 // Calculator B — Output Low-Pass Filter
 // ---------------------------------------------------------------------------
 
