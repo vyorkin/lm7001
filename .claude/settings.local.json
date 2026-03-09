@@ -23,7 +23,12 @@
       "Bash(node:*)",
       "Bash(npx vercel:*)",
       "Bash(NODE_OPTIONS=--openssl-legacy-provider npx vercel:*)",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''token exists:'', bool\\(d.get\\(''token''\\)\\)\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''token exists:'', bool\\(d.get\\(''token''\\)\\)\\)\")",
+      "Bash(nvm ls:*)",
+      "Bash(source:*)",
+      "Bash(~/.nvm/versions/node/v22.7.0/bin/npx vercel:*)",
+      "Bash(gh secret:*)",
+      "Bash(gh:*)"
     ]
   }
 }
