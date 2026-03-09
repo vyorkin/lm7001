@@ -1,8 +1,9 @@
 import { useState, useMemo, useId } from "react";
 import { calculateLoopFilter } from "../lib/loopFilter";
-import { hzToRad, mAtoA, khzToHz, mhzToHz } from "../lib/units";
+import { hzToRad, mAtoA, khzToHz, mhzToHz, formatSI } from "../lib/units";
 import ResultsPanel, { type ResultRow } from "./ResultsPanel";
 import FrequencyPlot from "./FrequencyPlot";
+import PassiveFilterDiagram from "./PassiveFilterDiagram";
 import type { LoopFilterInput, RefFrequency } from "../types";
 
 const REF_FREQS: RefFrequency[] = [
@@ -120,12 +121,12 @@ export default function LoopFilterCalculator() {
       {
         logF: Math.log10(result.value.fz),
         label: "fz",
-        color: "rgba(0,136,255,0.7)",
+        color: "rgba(118,131,144,0.65)",
       },
       {
         logF: Math.log10(result.value.fp),
         label: "fp",
-        color: "rgba(0,136,255,0.7)",
+        color: "rgba(118,131,144,0.65)",
       },
     ];
   }, [result.ok ? result.value.fc_actual : 0]);
@@ -354,8 +355,8 @@ export default function LoopFilterCalculator() {
               onChange={(e) => setPhiM(parseInt(e.target.value))}
               className="w-full h-1 rounded appearance-none cursor-pointer"
               style={{
-                background: `linear-gradient(to right, #00ffcc ${((phiM - 30) / 40) * 100}%, rgba(0,255,204,0.15) 0%)`,
-                accentColor: "#00ffcc",
+                background: `linear-gradient(to right, #adbac7 ${((phiM - 30) / 40) * 100}%, rgba(118,131,144,0.15) 0%)`,
+                accentColor: "#adbac7",
               }}
             />
             <div className="flex justify-between font-mono text-xs text-text-dim mt-0.5">
@@ -381,16 +382,14 @@ export default function LoopFilterCalculator() {
           <>
             {/* Topology diagram */}
             <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
-              <div className="font-mono text-xs text-text-dim mb-2 tracking-wider">
-                ТОПОЛОГИЯ
+              <div className="font-mono text-xs text-text-dim mb-3 tracking-wider">
+                ТОПОЛОГИЯ — ПАССИВНЫЙ RC-ФИЛЬТР
               </div>
-              <pre className="font-mono text-xs text-accent/50 leading-tight select-none">
-                {`PD1/PD2 ──┬──── R ────┬──── Vtune(VCO)
-          │           │
-         C2          C1
-          │           │
-         GND         GND`}
-              </pre>
+              <PassiveFilterDiagram
+                R={formatSI(result.value.R, "Ω", 2)}
+                C1={formatSI(result.value.C1, "F", 2)}
+                C2={formatSI(result.value.C2, "F", 2)}
+              />
             </div>
 
             {/* Results */}

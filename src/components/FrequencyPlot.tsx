@@ -39,10 +39,10 @@ function fmtFreq(hz: number): string {
   return `${hz.toFixed(0)}`
 }
 
-const GRID_COLOR = 'rgba(0,255,204,0.06)'
-const TICK_COLOR = '#3a5560'
-const MAG_COLOR = '#00ffcc'
-const PHASE_COLOR = '#0088ff'
+const GRID_COLOR = 'rgba(118,131,144,0.08)'
+const TICK_COLOR = '#636e7b'
+const MAG_COLOR = '#adbac7'
+const PHASE_COLOR = '#768390'
 
 export default function FrequencyPlot({
   data,
@@ -67,7 +67,7 @@ export default function FrequencyPlot({
         <span className="font-mono text-xs text-accent/70 tracking-[0.15em] uppercase">
           {title}
         </span>
-        <div className="flex items-center gap-4 font-mono text-xs text-text-dim">
+        <div className="flex items-center gap-4 font-mono text-xs text-text-secondary">
           <span className="flex items-center gap-1.5">
             <span className="w-4 h-px bg-accent inline-block" />
             Усиление [dB]
@@ -83,7 +83,7 @@ export default function FrequencyPlot({
 
       <div className="p-2" style={{ height: 220 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 40 }}>
+          <LineChart data={data} margin={{ top: 20, right: 16, bottom: 8, left: 40 }}>
             <CartesianGrid
               stroke={GRID_COLOR}
               strokeDasharray="0"
@@ -98,7 +98,7 @@ export default function FrequencyPlot({
               ticks={tickValues}
               tickFormatter={(v: number) => fmtFreq(Math.pow(10, v))}
               tick={{ fill: TICK_COLOR, fontSize: 10, fontFamily: 'Share Tech Mono' }}
-              axisLine={{ stroke: 'rgba(0,255,204,0.15)' }}
+              axisLine={{ stroke: 'rgba(118,131,144,0.2)' }}
               tickLine={{ stroke: TICK_COLOR }}
               label={{
                 value: 'Частота [Hz]',
@@ -114,7 +114,7 @@ export default function FrequencyPlot({
               yAxisId="mag"
               domain={['auto', 'auto']}
               tick={{ fill: TICK_COLOR, fontSize: 10, fontFamily: 'Share Tech Mono' }}
-              axisLine={{ stroke: 'rgba(0,255,204,0.15)' }}
+              axisLine={{ stroke: 'rgba(118,131,144,0.2)' }}
               tickLine={{ stroke: TICK_COLOR }}
               tickFormatter={(v: number) => `${v.toFixed(0)}dB`}
             />
@@ -126,7 +126,7 @@ export default function FrequencyPlot({
                 domain={[-180, 180]}
                 ticks={[-180, -135, -90, -45, 0, 45, 90, 135, 180]}
                 tick={{ fill: TICK_COLOR, fontSize: 10, fontFamily: 'Share Tech Mono' }}
-                axisLine={{ stroke: 'rgba(0,136,255,0.15)' }}
+                axisLine={{ stroke: 'rgba(118,131,144,0.2)' }}
                 tickLine={{ stroke: TICK_COLOR }}
                 tickFormatter={(v: number) => `${v}°`}
               />
@@ -134,12 +134,12 @@ export default function FrequencyPlot({
 
             <Tooltip
               contentStyle={{
-                background: '#0c1218',
-                border: '1px solid rgba(0,255,204,0.25)',
+                background: '#161b22',
+                border: '1px solid rgba(118,131,144,0.25)',
                 borderRadius: '2px',
                 fontFamily: 'Share Tech Mono',
                 fontSize: '11px',
-                color: '#00ffcc',
+                color: '#adbac7',
               }}
               formatter={(value: number, name: string) => {
                 if (name === 'mag') return [`${value.toFixed(1)} dB`, 'Усиление']
@@ -149,7 +149,7 @@ export default function FrequencyPlot({
               labelFormatter={(logF: number) =>
                 `f = ${formatSI(Math.pow(10, logF), 'Hz', 2)}`
               }
-              cursor={{ stroke: 'rgba(0,255,204,0.3)', strokeWidth: 1 }}
+              cursor={{ stroke: 'rgba(118,131,144,0.4)', strokeWidth: 1 }}
             />
 
             {/* Reference lines */}
@@ -174,7 +174,7 @@ export default function FrequencyPlot({
             <ReferenceLine
               yAxisId="mag"
               y={0}
-              stroke="rgba(0,255,204,0.2)"
+              stroke="rgba(118,131,144,0.25)"
               strokeDasharray="6 4"
             />
 

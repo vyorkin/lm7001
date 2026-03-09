@@ -1,8 +1,9 @@
 import { useState, useMemo, useId } from 'react'
 import { calculateOutputLPF } from '../lib/outputLpf'
-import { mhzToHz, TWO_PI } from '../lib/units'
+import { mhzToHz, TWO_PI, formatSI } from '../lib/units'
 import ResultsPanel, { type ResultRow } from './ResultsPanel'
 import FrequencyPlot from './FrequencyPlot'
+import LPFDiagram from './LPFDiagram'
 import type { LPFMode, OutputLPFInput } from '../types'
 
 export default function OutputLPFCalculator() {
@@ -277,32 +278,25 @@ export default function OutputLPFCalculator() {
 
         {result.ok && (
           <>
-            {/* LC topology */}
-            {mode === 'lc' && (
-              <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
-                <div className="font-mono text-xs text-text-dim mb-2 tracking-wider">ТОПОЛОГИЯ — LC Баттерворт 2-й порядок</div>
-                <pre className="font-mono text-xs text-accent/50 leading-tight select-none">
-{`VCO ──── L ────┬──── Load (Z0)
-               │
-               C
-               │
-              GND`}
-                </pre>
+            {/* Topology diagram */}
+            <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
+              <div className="font-mono text-xs text-text-dim mb-3 tracking-wider">
+                ТОПОЛОГИЯ
               </div>
-            )}
-
-            {mode === 'rc' && (
-              <div className="bg-bg-panel border border-accent-border/30 rounded-sm p-4">
-                <div className="font-mono text-xs text-text-dim mb-2 tracking-wider">ТОПОЛОГИЯ — RC 1-й порядок</div>
-                <pre className="font-mono text-xs text-accent/50 leading-tight select-none">
-{`VCO ──── R ────┬──── Output
-               │
-               C
-               │
-              GND`}
-                </pre>
-              </div>
-            )}
+              {mode === 'lc' ? (
+                <LPFDiagram
+                  mode="lc"
+                  seriesLabel={result.value.L != null ? formatSI(result.value.L, "H", 2) : "L"}
+                  shuntLabel={result.value.C != null ? formatSI(result.value.C, "F", 2) : "C"}
+                />
+              ) : (
+                <LPFDiagram
+                  mode="rc"
+                  seriesLabel={result.value.R != null ? formatSI(result.value.R, "Ω", 2) : "R"}
+                  shuntLabel={result.value.C != null ? formatSI(result.value.C, "F", 2) : "C"}
+                />
+              )}
+            </div>
 
             <ResultsPanel title="Рассчитанные значения фильтра" rows={rows} />
 
@@ -338,7 +332,7 @@ function ModeButton({
       className={[
         'flex-1 text-left p-3 border rounded-sm transition-all duration-150',
         active
-          ? 'border-accent bg-accent-glow shadow-[0_0_12px_rgba(0,255,204,0.1)]'
+          ? 'border-accent bg-accent-glow shadow-[0_0_12px_rgba(118,131,144,0.12)]'
           : 'border-accent-border bg-bg-raised hover:border-accent/40',
       ].join(' ')}
     >

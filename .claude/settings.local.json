@@ -20,7 +20,10 @@
       "Bash(npm install:*)",
       "Bash(npx tsc:*)",
       "Bash(npm run:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx vercel:*)",
+      "Bash(NODE_OPTIONS=--openssl-legacy-provider npx vercel:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''token exists:'', bool\\(d.get\\(''token''\\)\\)\\)\")"
     ]
   }
 }
